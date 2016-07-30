@@ -1,0 +1,8 @@
+pipelines:
+  default:
+    - step:
+        script:
+          - ./gradlew install
+          - ./gradlew check -Dscan
+          - ./gradlew -p acceptance-test test -Dscan
+
