@@ -9,6 +9,11 @@ description = 'Gradle plugin to integrate with AWS ECR'
 group = 'com.patdouble'
 version = 'SNAPSHOT'
 
+buildScan {
+    licenseAgreementUrl = 'https://gradle.com/terms-of-service'
+    licenseAgree = 'yes'
+}
+
 ext.gradlePluginId = 'com.patdouble.awsecr'
 ext.license = 'Apache-2.0'
 ext.licenseUrl = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
