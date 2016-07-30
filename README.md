@@ -1,4 +1,4 @@
-Gradle AWS Elastic Container Registry Plugin Template
+Gradle AWS Elastic Container Registry Plugin Template [![CircleCI](https://circleci.com/bb/double16/gradle-aws-ecr-plugin.svg?style=svg)](https://circleci.com/bb/double16/gradle-aws-ecr-plugin)
 =====================================================
 
 Integrates Docker functions with AWS ECR (Elastic Container Registry) using `gradle-docker-plugin`.
