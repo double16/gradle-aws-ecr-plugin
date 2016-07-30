@@ -8,8 +8,8 @@ dependencies:
 
 test:
   override:
-    - ./gradlew check
-    - ./gradlew -p acceptance-test test
+    - ./gradlew check -Dscan
+    - ./gradlew -p acceptance-test test -Dscan
 
 #deployment:
 #  - test ${TRAVIS_TAG} && ./gradlew bintrayUpload
