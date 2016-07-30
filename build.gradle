@@ -1,0 +1,109 @@
+plugins {
+    id 'com.gradle.build-scan' version '1.0'
+    id 'groovy'
+    id 'maven-publish'
+    id 'com.jfrog.bintray' version '1.4'
+}
+
+description = 'Gradle plugin to integrate with AWS ECR'
+group = 'com.patdouble'
+version = 'SNAPSHOT'
+
+ext.gradlePluginId = 'com.patdouble.awsecr'
+ext.license = 'Apache-2.0'
+ext.licenseUrl = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+ext.vcsUrl = 'https://bitbucket.org/double16/gradle-aws-ecr-plugin.git'
+
+// Set product version if tag is given on Travis CI
+System.getenv('TRAVIS_TAG')?.eachMatch(/^[\d.]+$/) { m -> project.version = m[0] }
+
+sourceCompatibility = JavaVersion.VERSION_1_7
+targetCompatibility = JavaVersion.VERSION_1_7
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+    compile gradleApi()
+    compile localGroovy()
+    testCompile('org.spockframework:spock-core:1.0-groovy-2.4') {
+        exclude module: 'groovy-all'
+    }
+    testCompile 'cglib:cglib-nodep:3.1'
+}
+
+task javadocJar(type: Jar, dependsOn: groovydoc) {
+    from "${buildDir}/docs/groovydoc"
+    classifier = 'javadoc'
+}
+
+task sourcesJar(type: Jar) {
+    from sourceSets.main.allSource
+    classifier = 'sources'
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from components.java
+            artifact sourcesJar
+            artifact javadocJar
+            groupId rootProject.group
+            artifactId rootProject.name
+            pom.withXml {
+                asNode().children().last() + {
+                    resolveStrategy = DELEGATE_FIRST
+                    name rootProject.name
+                    description rootProject.description
+                    url rootProject.vcsUrl
+                    scm {
+                        url rootProject.vcsUrl
+                        connection "scm:git:$rootProject.vcsUrl"
+                    }
+                    licenses {
+                        license {
+                            name rootProject.license
+                            url rootProject.licenseUrl
+                            distribution 'repo'
+                        }
+                    }
+                    developers {
+                        developer {
+                            id rootProject.group
+                            name rootProject.group
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+bintray {
+    user = System.getenv('BINTRAY_USER') ?: getProjectProperty('bintrayUser')
+    key  = System.getenv('BINTRAY_KEY')  ?: getProjectProperty('bintrayKey')
+    publications = ['maven']
+    pkg {
+        repo = 'maven'
+        name = rootProject.name
+        licenses = [rootProject.license]
+        vcsUrl = rootProject.vcsUrl
+        version {
+            attributes = ['gradle-plugin': "${getProjectProperty('gradlePluginId')}:${rootProject.group}:${rootProject.name}"]
+            name = rootProject.version
+        }
+    }
+}
+
+tasks.bintrayUpload.doFirst {
+    assert !project.version.contains('SNAPSHOT')
+}
+
+task install(dependsOn: 'publishMavenPublicationToMavenLocal')
+
+def getProjectProperty(String key, String defaultValue = null) {
+    project.hasProperty(key) ? project.property(key) : defaultValue
+}
+
+apply from: file('gradle/plugin-generator.gradle')

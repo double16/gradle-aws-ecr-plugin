@@ -1,0 +1,17 @@
+description 'Automated acceptance test'
+
+buildscript {
+    repositories {
+        mavenLocal()
+        jcenter()
+    }
+    dependencies {
+        classpath "com.patdouble:gradle-aws-ecr-plugin:$version"
+    }
+}
+
+apply plugin: 'com.patdouble.awsecr'
+
+task test << {
+    assert plugins.hasPlugin('com.patdouble.awsecr')
+}

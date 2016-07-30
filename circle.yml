@@ -1,0 +1,16 @@
+machine:
+java:
+    version: openjdk8
+
+dependencies:
+  pre:
+    - ./gradlew install
+
+test:
+  override:
+    - ./gradlew check
+    - ./gradlew -p acceptance-test test
+
+#deployment:
+#  - test ${TRAVIS_TAG} && ./gradlew bintrayUpload
+
