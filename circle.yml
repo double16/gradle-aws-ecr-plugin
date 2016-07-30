@@ -12,6 +12,9 @@ test:
   override:
     - ./gradlew check -Dscan
     - ./gradlew -p acceptance-test test -Dscan
+  post:
+    - mkdir -p $CIRCLE_TEST_REPORTS/junit/
+    - find . -type f -regex ".*/build/test-results/.*xml" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
 
 #deployment:
 #  - test ${TRAVIS_TAG} && ./gradlew bintrayUpload
