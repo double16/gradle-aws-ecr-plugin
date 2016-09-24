@@ -6,7 +6,7 @@ machine:
 
 test:
   override:
-    - ./gradlew check -Dscan
+    - ./gradlew check install -Dscan
     - ./gradlew -p acceptance-test test -Dscan
   post:
     - mkdir -p $CIRCLE_TEST_REPORTS/junit/

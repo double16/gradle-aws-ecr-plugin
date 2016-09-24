@@ -3,5 +3,5 @@ pipelines:
     - step:
         script:
           - ./gradlew dependencies
-          - ./gradlew check -Dscan
+          - ./gradlew check install -Dscan
           - ./gradlew -p acceptance-test test -Dscan
