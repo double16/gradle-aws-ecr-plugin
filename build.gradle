@@ -112,5 +112,3 @@ task install(dependsOn: 'publishMavenPublicationToMavenLocal')
 def getProjectProperty(String key, String defaultValue = null) {
     project.hasProperty(key) ? project.property(key) : defaultValue
 }
-
-apply from: file('gradle/plugin-generator.gradle')

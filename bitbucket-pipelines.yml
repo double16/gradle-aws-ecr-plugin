@@ -2,6 +2,6 @@ pipelines:
   default:
     - step:
         script:
-          - ./gradlew install
+          - ./gradlew dependencies
           - ./gradlew check -Dscan
           - ./gradlew -p acceptance-test test -Dscan

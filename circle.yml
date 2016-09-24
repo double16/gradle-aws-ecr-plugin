@@ -4,10 +4,6 @@ machine:
   environment:
     TERM: dumb
 
-dependencies:
-  pre:
-    - ./gradlew install
-
 test:
   override:
     - ./gradlew check -Dscan
