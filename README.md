@@ -14,7 +14,12 @@ This contains following features:
 Getting Started
 ---------------
 
-TODO
+The plugin will detect the AWS ECR url in docker tasks. Only one AWS account is supported at this time. The AWS credentials must be supplied in the following environment variables:
+
+* AWS_ACCESS_KEY_ID
+* AWS_SECRET_ACCESS_KEY
+
+The secret access key (token) must be permitted to create ECR tokens and read/write (as needed) to the repositories. 
 
 Contributions
 -------------
