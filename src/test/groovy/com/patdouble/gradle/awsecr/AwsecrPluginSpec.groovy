@@ -1,17 +1,14 @@
-package com.patdouble
+package com.patdouble.gradle.awsecr
 
 import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
 import com.bmuschko.gradle.docker.tasks.image.DockerPullImage
 import com.bmuschko.gradle.docker.tasks.image.DockerPushImage
-import com.patdouble.gradle.awsecr.AwsecrPlugin
 import org.gradle.api.GradleException
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
 
 class AwsecrPluginSpec extends Specification {
-
-
-    public static final String FAKE_REPO = 'https://123456789.dkr.ecr.us-east-1.amazonaws.com'
+    static final String FAKE_REPO = 'https://123456789.dkr.ecr.us-east-1.amazonaws.com'
 
     def "apply() should load the plugin"() {
         given:
