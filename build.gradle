@@ -55,4 +55,21 @@ tasks.publishPlugins.doFirst {
     assert !project.version.contains('SNAPSHOT')
 }
 
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from components.java
+            groupId rootProject.group
+            artifactId rootProject.name
+            pom.withXml {
+                asNode().children().last() + {
+                    resolveStrategy = DELEGATE_FIRST
+                    name rootProject.name
+                    description rootProject.description
+                }
+            }
+        }
+    }
+}
+
 task install(dependsOn: 'publishToMavenLocal')
