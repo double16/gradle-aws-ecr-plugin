@@ -19,4 +19,4 @@ deployment:
   release:
     branch: master
     commands:
-      - test ${CIRCLE_TAG} && ./gradlew publishPlugins
+      - test ${CIRCLE_TAG} && ./gradlew publishPlugins || true
