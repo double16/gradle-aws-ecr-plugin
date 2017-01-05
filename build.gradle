@@ -55,4 +55,4 @@ tasks.publishPlugins.doFirst {
     assert !project.version.contains('SNAPSHOT')
 }
 
-task install(dependsOn: 'publishMavenPublicationToMavenLocal')
+task install(dependsOn: 'publishToMavenLocal')

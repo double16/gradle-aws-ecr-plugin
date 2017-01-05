@@ -12,6 +12,8 @@ buildscript {
 
 apply plugin: 'com.patdouble.awsecr'
 
-task test << {
+task test {
+  doLast {
     assert plugins.hasPlugin('com.patdouble.awsecr')
+  }
 }
