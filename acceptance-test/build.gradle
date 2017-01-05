@@ -6,7 +6,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath "com.patdouble:gradle-aws-ecr-plugin:$version"
+        classpath "com.patdouble:gradle-aws-ecr-plugin:${System.getenv('CIRCLE_TAG') ?: version}"
     }
 }
 
