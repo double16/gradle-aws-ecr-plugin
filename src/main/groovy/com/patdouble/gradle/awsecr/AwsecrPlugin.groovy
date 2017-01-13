@@ -96,6 +96,10 @@ class AwsecrPlugin implements Plugin<Project> {
         }
 
         AmazonECRClient ecrClient = new AmazonECRClient(new BasicAWSCredentials(awsAccessKeyId, awsSecretAccessKey))
+
+        // honor region set in registryUrl so correct signer is used
+        ecrClient.setEndpoint( registryUrl.replaceAll( '^.*(ecr.*)$', '$1' ) )
+
         GetAuthorizationTokenResult tokens = ecrClient.getAuthorizationToken(new GetAuthorizationTokenRequest().withRegistryIds(registryId))
         if (tokens.authorizationData) {
             def ecrCreds = new String(tokens.authorizationData.first().authorizationToken.decodeBase64(), 'US-ASCII').split(':')
