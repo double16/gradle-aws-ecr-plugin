@@ -13,7 +13,7 @@ import org.gradle.api.Project
 import java.util.regex.Pattern
 
 class AwsecrPlugin implements Plugin<Project> {
-    private static final Pattern AWS_ECR_URL = ~/https:\/\/([0-9A-Za-z]+)\.dkr\.ecr\.[a-zA-Z0-9-]+\.amazonaws\.com/
+    private static final Pattern AWS_ECR_URL = ~/(?:https:\/\/)?([0-9A-Za-z]+)\.dkr\.ecr\.[a-zA-Z0-9-]+\.amazonaws\.com/
 
     Project project
 
@@ -78,10 +78,11 @@ class AwsecrPlugin implements Plugin<Project> {
      * @return
      */
     protected DockerRegistryCredentials findEcrCredentials(String registryId, String registryUrl) {
-        def awsAccessKeyId = System.getenv('AWS_ACCESS_KEY_ID')
-        def awsSecretAccessKey = System.getenv('AWS_SECRET_ACCESS_KEY')
+        def awsAccessKeyId = project.hasProperty('awsAccessKeyId') ? project['awsAccessKeyId'] : System.getenv('AWS_ACCESS_KEY_ID')
+        def awsSecretAccessKey = project.hasProperty('awsSecretAccessKey') ? project['awsSecretAccessKey'] : System.getenv('AWS_SECRET_ACCESS_KEY')
         if (!awsAccessKeyId || !awsSecretAccessKey) {
-            throw new GradleException("AWS ECR registry requires AWS account credentials configured in environment AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY")
+            project.logger.error('AWS ECR registry requires AWS account credentials configured in environment AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY, aborting')
+            return
         }
 
         def credFile = project.rootProject.file(".gradle/ecr${Math.abs((awsAccessKeyId + awsSecretAccessKey + registryId).hashCode())}.properties")
