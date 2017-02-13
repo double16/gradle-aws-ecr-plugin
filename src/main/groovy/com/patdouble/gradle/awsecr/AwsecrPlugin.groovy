@@ -1,31 +1,55 @@
 package com.patdouble.gradle.awsecr
 
-import com.amazonaws.auth.BasicAWSCredentials
-import com.amazonaws.services.ecr.AmazonECRClient
-import com.amazonaws.services.ecr.model.GetAuthorizationTokenRequest
-import com.amazonaws.services.ecr.model.GetAuthorizationTokenResult
+import com.bmuschko.gradle.docker.DockerExtension
 import com.bmuschko.gradle.docker.DockerRegistryCredentials
+import com.bmuschko.gradle.docker.DockerRemoteApiPlugin
 import com.bmuschko.gradle.docker.tasks.RegistryCredentialsAware
-import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.Task
+import org.gradle.api.tasks.TaskCollection
 
 import java.util.regex.Pattern
 
 class AwsecrPlugin implements Plugin<Project> {
+    public static final String POPULATE_ECR_CREDENTIALS_NAME = 'populateECRCredentials'
+
     private static final Pattern AWS_ECR_URL = ~/(?:https:\/\/)?([0-9A-Za-z]+)\.dkr\.ecr\.[a-zA-Z0-9-]+\.amazonaws\.com/
 
     Project project
+    PopulateECRCredentials populateECRCredentials
 
     @Override
     void apply(Project project) {
         assert project
         this.project = project
 
-        project.afterEvaluate {
-            project.tasks.withType(RegistryCredentialsAware) { task ->
-                configureRegistryCredentials(task)
+        populateECRCredentials = createPopulateECRCredentialsTask()
+        //Make sure there is an object to share references
+        project.extensions.getByType(DockerExtension).with{
+            if (!registryCredentials) {
+                registryCredentials = new DockerRegistryCredentials()
             }
+        }
+
+        project.afterEvaluate {
+            populateECRCredentials.registryCredentials = project.extensions.getByType(DockerExtension).registryCredentials
+
+            TaskCollection<RegistryCredentialsAware> regTasks = project.tasks.withType(RegistryCredentialsAware).matching {!(it in PopulateECRCredentials)}
+            configureRegistryCredentials(regTasks)
+            regTasks*.dependsOn populateECRCredentials
+        }
+    }
+
+    protected Task createPopulateECRCredentialsTask() {
+        project.task(POPULATE_ECR_CREDENTIALS_NAME, type: PopulateECRCredentials) {
+            group = DockerRemoteApiPlugin.DEFAULT_TASK_GROUP
+            description = 'Retrieve and use ECR registryCredentials'
+            awsAccessKeyId = project.hasProperty('awsAccessKeyId') ? project['awsAccessKeyId'] : System.getenv('AWS_ACCESS_KEY_ID')
+            awsSecretAccessKey = project.hasProperty('awsSecretAccessKey') ? project['awsSecretAccessKey'] : System.getenv('AWS_SECRET_ACCESS_KEY')
+
+            logger = project.logger
+            credFileDirectory = project.rootProject.file(".gradle")
         }
     }
 
@@ -55,66 +79,26 @@ class AwsecrPlugin implements Plugin<Project> {
          'url': m.group(0)]
     }
 
-    protected void configureRegistryCredentials(RegistryCredentialsAware registryCredentialsAware) {
-        String repository = findRepository(registryCredentialsAware)
+    protected void configureRegistryCredentials(TaskCollection<RegistryCredentialsAware> registryCredentialsAwareCollection) {
+        String repository = registryCredentialsAwareCollection.findResult{ findRepository(it) }
         if (!repository) {
+            project.logger.info('No compatible registries extracted')
             return
         }
 
         def info = extractEcrInfo(repository)
         if (!info) {
-            project.logger.info("Skipping docker credentials for ${registryCredentialsAware} because repository '${repository}' is not AWS ECR")
+            project.logger.info("Skipping because repository '${repository}' is not AWS ECR")
             return
         }
 
         String registryId = info.id
         String registryUrl = info.url
         project.logger.info("Found ECR registry account ID ${registryId} at ${registryUrl}")
-        registryCredentialsAware.registryCredentials = findEcrCredentials(registryId, registryUrl)
-    }
-
-    /**
-     * Determine the AWS ECR credentials, if present.
-     * @return
-     */
-    protected DockerRegistryCredentials findEcrCredentials(String registryId, String registryUrl) {
-        def awsAccessKeyId = project.hasProperty('awsAccessKeyId') ? project['awsAccessKeyId'] : System.getenv('AWS_ACCESS_KEY_ID')
-        def awsSecretAccessKey = project.hasProperty('awsSecretAccessKey') ? project['awsSecretAccessKey'] : System.getenv('AWS_SECRET_ACCESS_KEY')
-        if (!awsAccessKeyId || !awsSecretAccessKey) {
-            project.logger.error('AWS ECR registry requires AWS account credentials configured in environment AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY, aborting')
-            return
+        populateECRCredentials.with{
+            it.repository = repository
+            it.registryId = registryId
+            it.registryUrl = registryUrl
         }
-
-        def credFile = project.rootProject.file(".gradle/ecr${Math.abs((awsAccessKeyId + awsSecretAccessKey + registryId).hashCode())}.properties")
-
-        if (credFile.canRead() && credFile.isFile()) {
-            Properties props = new Properties()
-            credFile.withInputStream { props.load(it) }
-            if (props.get('expiresAt') && Long.parseLong(props.getProperty('expiresAt')) > (System.currentTimeMillis() + 3600000)) {
-                project.logger.info("Using ECR credentials from ${credFile}")
-                return new DockerRegistryCredentials(url: registryUrl, username: props.getProperty('username'), password: props.getProperty('password'))
-            }
-        }
-
-        AmazonECRClient ecrClient = new AmazonECRClient(new BasicAWSCredentials(awsAccessKeyId, awsSecretAccessKey))
-
-        // honor region set in registryUrl so correct signer is used
-        ecrClient.setEndpoint( registryUrl.replaceAll( '^.*(ecr.*)$', '$1' ) )
-
-        GetAuthorizationTokenResult tokens = ecrClient.getAuthorizationToken(new GetAuthorizationTokenRequest().withRegistryIds(registryId))
-        if (tokens.authorizationData) {
-            def ecrCreds = new String(tokens.authorizationData.first().authorizationToken.decodeBase64(), 'US-ASCII').split(':')
-
-            Properties props = new Properties()
-            props.setProperty('username', ecrCreds[0])
-            props.setProperty('password', ecrCreds[1])
-            props.setProperty('expiresAt', String.valueOf(tokens.authorizationData.first().expiresAt.time))
-            credFile.parentFile.mkdirs()
-            credFile.withOutputStream { props.store(it, "ECR Credentials for ${awsAccessKeyId} @ ${registryUrl}") }
-
-            return new DockerRegistryCredentials(url: registryUrl, username: ecrCreds[0], password: ecrCreds[1])
-        }
-
-        throw new GradleException("Could not get ECR token: ${tokens.sdkHttpMetadata.httpStatusCode}")
     }
 }
