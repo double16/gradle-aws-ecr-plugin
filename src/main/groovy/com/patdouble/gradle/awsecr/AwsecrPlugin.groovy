@@ -23,6 +23,7 @@ class AwsecrPlugin implements Plugin<Project> {
     void apply(Project project) {
         assert project
         this.project = project
+        project.plugins.apply(DockerRemoteApiPlugin)
 
         populateECRCredentials = createPopulateECRCredentialsTask()
         //Make sure there is an object to share references

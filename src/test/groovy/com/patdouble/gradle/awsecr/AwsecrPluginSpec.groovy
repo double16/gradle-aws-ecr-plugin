@@ -69,26 +69,32 @@ class AwsecrPluginSpec extends Specification {
         plugin.extractEcrInfo('library/mongo').isEmpty()
     }
 
-    def "registry aware tasks are found"() {
+    def "registry aware tasks depend on populateECRCredentials "() {
         given:
         def project = ProjectBuilder.builder().build()
+        def newTasks
         project.with {
             apply plugin: 'com.patdouble.awsecr'
-            tasks.create('pull', DockerPullImage) {
-                repository = FAKE_REPO
-            }
-            tasks.create('build', DockerBuildImage) {
-                tag = FAKE_REPO+'/myimage:latest'
-            }
-            tasks.create('push', DockerPushImage) {
-                imageName = FAKE_REPO+'/myimage'
-            }
+            newTasks = [
+                    tasks.create('pull', DockerPullImage) {
+                        repository = FAKE_REPO
+                    },
+                    tasks.create('build', DockerBuildImage) {
+                        tag = FAKE_REPO+'/myimage:latest'
+                    },
+                    tasks.create('push', DockerPushImage) {
+                        imageName = FAKE_REPO+'/myimage'
+                    }
+            ]
         }
 
         when:
         project.evaluate()
+        def populateECRCredentials = project.tasks
+                .getByName('populateECRCredentials')
 
         then:
-        thrown(GradleException)
+        populateECRCredentials
+        newTasks.every{ populateECRCredentials in it.dependsOn }
     }
 }
