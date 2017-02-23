@@ -78,10 +78,9 @@ task primeCache {
 	group = "staging"
     doLast {
 		project.rootProject.allprojects.each { subProject ->
-			logger.info "Priming ${subProject.name}, configs = ${subProject.buildscript.configurations*.name}"
-			subProject.buildscript.configurations*.resolve()
-			logger.info "Priming ${subProject.name}, configs = ${subProject.configurations*.name}"
-			subProject.configurations*.resolve()
+                        def configs = [subProject.buildscript.configurations, subProject.configurations].flatten().findAll { it.isCanBeResolved() }
+			logger.info "Priming ${subProject.name}, configs = ${configs*.name}"
+			configs*.resolve()
 		}
 	}
 }
