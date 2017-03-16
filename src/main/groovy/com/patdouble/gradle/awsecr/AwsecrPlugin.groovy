@@ -46,8 +46,8 @@ class AwsecrPlugin implements Plugin<Project> {
         project.task(POPULATE_ECR_CREDENTIALS_NAME, type: PopulateECRCredentials) {
             group = DockerRemoteApiPlugin.DEFAULT_TASK_GROUP
             description = 'Retrieve and use ECR registryCredentials'
-            awsAccessKeyId = project.hasProperty('awsAccessKeyId') ? project['awsAccessKeyId'] : System.getenv('AWS_ACCESS_KEY_ID')
-            awsSecretAccessKey = project.hasProperty('awsSecretAccessKey') ? project['awsSecretAccessKey'] : System.getenv('AWS_SECRET_ACCESS_KEY')
+            awsAccessKeyId = project.hasProperty('awsAccessKeyId') ? project['awsAccessKeyId'] : null
+            awsSecretAccessKey = project.hasProperty('awsSecretAccessKey') ? project['awsSecretAccessKey'] : null
 
             logger = project.logger
             credFileDirectory = project.rootProject.file(".gradle")

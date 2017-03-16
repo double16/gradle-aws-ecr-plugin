@@ -1,7 +1,12 @@
 package com.patdouble.gradle.awsecr
 
+import com.amazonaws.auth.AWSCredentials
+import com.amazonaws.auth.AWSStaticCredentialsProvider
 import com.amazonaws.auth.BasicAWSCredentials
+import com.amazonaws.internal.StaticCredentialsProvider
+import com.amazonaws.services.ecr.AmazonECR
 import com.amazonaws.services.ecr.AmazonECRClient
+import com.amazonaws.services.ecr.AmazonECRClientBuilder
 import com.amazonaws.services.ecr.model.GetAuthorizationTokenRequest
 import com.amazonaws.services.ecr.model.GetAuthorizationTokenResult
 import com.bmuschko.gradle.docker.DockerRegistryCredentials
@@ -10,6 +15,7 @@ import com.bmuschko.gradle.docker.tasks.RegistryCredentialsAware
 import org.gradle.api.GradleException
 import org.gradle.api.logging.Logger
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Optional
 
 class PopulateECRCredentials extends AbstractReactiveStreamsTask implements RegistryCredentialsAware {
 
@@ -26,9 +32,11 @@ class PopulateECRCredentials extends AbstractReactiveStreamsTask implements Regi
     String registryUrl
 
     @Input
+    @Optional
     String awsAccessKeyId
 
     @Input
+    @Optional
     String awsSecretAccessKey
 
     Logger logger
@@ -37,7 +45,7 @@ class PopulateECRCredentials extends AbstractReactiveStreamsTask implements Regi
     @Override
     void runReactiveStream() {
 
-        def credFile = new File("${credFileDirectory}/ecr${Math.abs((awsAccessKeyId + awsSecretAccessKey + registryId).hashCode())}.properties")
+        def credFile = new File("${credFileDirectory}/ecr${Math.abs((registryId).hashCode())}.properties")
 
         if (credFile.canRead() && credFile.isFile()) {
             Properties props = new Properties()
@@ -52,12 +60,18 @@ class PopulateECRCredentials extends AbstractReactiveStreamsTask implements Regi
             }
         }
 
-        AmazonECRClient ecrClient = new AmazonECRClient(new BasicAWSCredentials(awsAccessKeyId, awsSecretAccessKey))
+        //Get the region from the registry URL
+        def region = registryUrl.replaceAll(/^.*ecr\.(.*)\.amazonaws.*$/, '$1')
 
-        // honor region set in registryUrl so correct signer is used
-        ecrClient.setEndpoint(registryUrl.replaceAll( '^.*(ecr.*)$', '$1' ) )
+        AmazonECRClientBuilder ecrClientBuilder = AmazonECRClientBuilder.standard().withRegion(region)
 
-        GetAuthorizationTokenResult tokens = ecrClient.getAuthorizationToken(new GetAuthorizationTokenRequest().withRegistryIds(registryId))
+        if (awsAccessKeyId != null && awsSecretAccessKey != null)
+        {
+            ecrClientBuilder.setCredentials(new AWSStaticCredentialsProvider(new BasicAWSCredentials(awsAccessKeyId, awsSecretAccessKey)))
+        }
+
+        GetAuthorizationTokenResult tokens = ecrClientBuilder.build()
+                .getAuthorizationToken(new GetAuthorizationTokenRequest().withRegistryIds(registryId))
 
         if (!tokens.authorizationData) {
             throw new GradleException("Could not get ECR token: ${tokens.sdkHttpMetadata.httpStatusCode}")
@@ -70,7 +84,7 @@ class PopulateECRCredentials extends AbstractReactiveStreamsTask implements Regi
         props.setProperty('password', ecrCreds[1])
         props.setProperty('expiresAt', String.valueOf(tokens.authorizationData.first().expiresAt.time))
         credFile.parentFile.mkdirs()
-        credFile.withOutputStream { props.store(it, "ECR Credentials for ${awsAccessKeyId} @ ${registryUrl}") }
+        credFile.withOutputStream { props.store(it, "ECR Credentials @ ${registryUrl}") }
 
         registryCredentials.with {
             url = registryUrl
