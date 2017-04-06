@@ -1,7 +1,7 @@
 version: 2
 jobs:
   build:
-    working_directory: /home/gradle-aws-ecr-plugin
+    working_directory: ~/gradle-aws-ecr-plugin
     environment:
       - TERM=dumb
       # from plugins.gradle.org:
