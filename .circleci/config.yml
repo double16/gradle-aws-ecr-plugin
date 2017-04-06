@@ -1,0 +1,42 @@
+version: 2
+jobs:
+  build:
+    working_directory: /home/gradle-aws-ecr-plugin
+    environment:
+      - TERM=dumb
+      # from plugins.gradle.org:
+      #- ORG_GRADLE_PROJECT_GRADLE_PUBLISH_KEY=
+      #- ORG_GRADLE_PROJECT_GRADLE_PUBLISH_SECRET=
+    docker:
+      - image: gradle:3.4.1-jdk8
+    steps:
+      - checkout
+      - restore_cache:
+          key: gradle-aws-ecr-plugin-{{ .Branch }}-{{ checksum "build.gradle" }}
+      - run:
+          name: Install Dependencies
+          command: gradle primeCache
+      - save_cache:
+          key: gradle-aws-ecr-plugin-{{ .Branch }}-{{ checksum "build.gradle" }}
+          paths:
+            - "~/.gradle"
+
+      - run:
+          name: Run Checks
+          command: gradle check install --scan
+      - store_test_results:
+          path: ./build/test-results
+
+      - run:
+          name: Acceptance Tests
+          command: gradle -p acceptance-test test --scan
+      #- store_test_results:
+      #    path: ./acceptance-test/build/test-results
+
+      - deploy:
+          name: Deploy to Gradle Plugins
+          command: |
+            if [[ "${CIRCLE_TAG}" =~ ^[0-9][0-9.]*$ ]]; then
+              gradle publishPlugins
+            fi
+
