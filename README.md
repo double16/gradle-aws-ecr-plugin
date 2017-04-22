@@ -24,6 +24,9 @@ The plugin will detect the AWS ECR url in docker tasks. Only one AWS account is 
 Additionally, the following project properties can be specified that take precedence over the AWS SDK:
 * awsAccessKeyId
 * awsSecretAccessKey
+```shell
+$ ./gradlew -PawsAccessKeyId=MY_ACCESS_ID -PawsSecretAccessKey=MY_SECRET
+```
 
 The secret access key (token) must be permitted to create ECR tokens and read/write (as needed) to the repositories.
 
