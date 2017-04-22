@@ -1,7 +1,9 @@
+image: gradle:3.4.1-jdk8
+
 pipelines:
   default:
     - step:
         script:
-          - ./gradlew dependencies
-          - ./gradlew check install -Dscan
-          - ./gradlew -p acceptance-test test -Dscan
+          - gradle dependencies
+          - gradle check install -Dscan
+          - gradle -p acceptance-test test -Dscan

@@ -3,9 +3,12 @@ plugins {
     id 'groovy'
     id 'maven-publish'
     id 'com.gradle.plugin-publish' version '0.9.7'
-    id "nebula.lint" version "6.8.0"
+    id "nebula.lint" version "7.3.5"
     id "com.github.ben-manes.versions" version "0.14.0"
+    id 'ru.vyarus.quality' version '2.2.0'
 }
+
+apply plugin: 'idea'
 
 description = 'Gradle plugin to integrate with AWS ECR'
 group = 'com.patdouble'
@@ -36,6 +39,8 @@ System.getenv('CIRCLE_TAG')?.eachMatch(/^[0-9]+(\.[0-9]+)*$/) { m -> project.ver
 sourceCompatibility = JavaVersion.VERSION_1_7
 targetCompatibility = JavaVersion.VERSION_1_7
 
+apply from: 'gradle/coverage.gradle'
+
 repositories {
     jcenter()
 }
@@ -43,12 +48,12 @@ repositories {
 dependencies {
     compile gradleApi()
     compile localGroovy()
-    compile 'com.bmuschko:gradle-docker-plugin:3.0.5'
-    compile 'com.amazonaws:aws-java-sdk-ecr:1.11.76'
+    compile 'com.bmuschko:gradle-docker-plugin:3.0.6'
+    compile 'com.amazonaws:aws-java-sdk-ecr:1.11.119'
     testCompile('org.spockframework:spock-core:1.0-groovy-2.4') {
         exclude module: 'groovy-all'
     }
-    testCompile 'cglib:cglib-nodep:3.1'
+    testCompile 'cglib:cglib-nodep:3.2.5'
 }
 
 tasks.publishPlugins.doFirst {
@@ -78,7 +83,7 @@ task primeCache {
 	group = "staging"
     doLast {
 		project.rootProject.allprojects.each { subProject ->
-                        def configs = [subProject.buildscript.configurations, subProject.configurations].flatten().findAll { it.isCanBeResolved() }
+            def configs = [subProject.buildscript.configurations, subProject.configurations].flatten().findAll { it.isCanBeResolved() }
 			logger.info "Priming ${subProject.name}, configs = ${configs*.name}"
 			configs*.resolve()
 		}
