@@ -52,7 +52,7 @@ You will need both the `gradle-docker-plugin` and `gradle-aws-ecr-plugin`.
 ```groovy
 plugins {
   id "com.bmuschko.docker-remote-api" version "3.0.6"
-  id "com.patdouble.awsecr" version "0.3"
+  id "com.patdouble.awsecr" version "0.3.2"
 }
 ```
 
@@ -90,6 +90,10 @@ $ ./gradlew -p acceptance-test test
 
 Change Log
 ----------
+
+## 0.3.2
+- Fix CircleCI 2.0 for building tags
+
 ## 0.3.1
 - Documentation and code quality (tests, coverage, etc.) improvements
 - Build with Gradle 3.5
