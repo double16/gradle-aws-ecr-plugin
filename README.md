@@ -92,6 +92,7 @@ Change Log
 ----------
 ## 0.3.1
 - Documentation and code quality (tests, coverage, etc.) improvements
+- Build with Gradle 3.5
 
 ## 0.3
 Thanks @jonathan_naguin !
