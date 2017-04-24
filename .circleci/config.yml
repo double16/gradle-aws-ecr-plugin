@@ -43,3 +43,10 @@ jobs:
             if [[ "${CIRCLE_TAG}" =~ ^[0-9][0-9.]*$ ]]; then
               gradle publishPlugins
             fi
+
+# https://discuss.circleci.com/t/git-tag-deploys-in-2-0/9493/6
+deployment:
+  fake_deploy_for_cci2:
+    tag: /.*/
+    commands:
+      - echo "make tags run in 2.0"
