@@ -5,5 +5,5 @@ pipelines:
     - step:
         script:
           - gradle dependencies
-          - gradle check install -Dscan
-          - gradle -p acceptance-test test -Dscan
+          - gradle check install --scan
+          - gradle -p acceptance-test test --scan
