@@ -28,7 +28,45 @@ Additionally, the following project properties can be specified that take preced
 $ ./gradlew -PawsAccessKeyId=MY_ACCESS_ID -PawsSecretAccessKey=MY_SECRET
 ```
 
-The secret access key (token) must be permitted to create ECR tokens and read/write (as needed) to the repositories.
+The secret access key (token) must be permitted to create ECR tokens and read/write (as needed) to the repositories. An example inline security policy that allows a group all access to ECR follows. You may want to look into restricting this, to prevent deleting a repo, for example.
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "Stmt1461121381000",
+            "Effect": "Allow",
+            "Action": [
+                "ecr:*"
+            ],
+            "Resource": [
+                "*"
+            ]
+        }
+    ]
+}
+```
+
+You will need both the `gradle-docker-plugin` and `gradle-aws-ecr-plugin`.
+
+```groovy
+plugins {
+  id "com.bmuschko.docker-remote-api" version "3.0.6"
+  id "com.patdouble.awsecr" version "0.3"
+}
+```
+
+Then set the Docker registry to your ECR URL. The URL is given by the AWS ECR console. Note that this clause is defined by the `gradle-docker-plugin`. Neither username nor password should be set, the `gradle-aws-ecr-plugin` will handle that.
+
+```groovy
+docker {
+    registryCredentials {
+        url = 'https://123456789012.dkr.ecr.us-east-1.amazonaws.com'
+    }
+}
+```
+
+All Docker tasks such as `DockerPullImage`, `DockerPushImage`, etc. that are configured with the ECR registry URL will get a temporary ECR token. No further configuration is necessary. It is possible to set the registry URL for individual tasks. For those tasks with a registry that is not ECR, the username and password will not be set with an ECR token.
 
 Contributions
 -------------
@@ -36,8 +74,25 @@ Contributions
 This is open source software licensed under the Apache License Version 2.0.
 Any issues or pull requests are welcome.
 
+Build and run unit tests:
+```shell
+$ ./gradlew check
+```
+
+- Test results in `build/reports/tests/test/index.html`
+- Test Coverage in `build/reports/coverage/index.html`
+- CodeNarc results in `build/reports/codenarc/main.html`
+
+Acceptance test to ensure the plugin will be applied:
+```shell
+$ ./gradlew -p acceptance-test test
+```
+
 Change Log
 ----------
+## 0.3.1
+- Documentation and code quality (tests, coverage, etc.) improvements
+
 ## 0.3
 Thanks @jonathan_naguin !
 - Use AWS credentials Provider chain #5 (@jonathan_naguin)
