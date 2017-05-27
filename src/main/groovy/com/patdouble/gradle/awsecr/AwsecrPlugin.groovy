@@ -4,6 +4,7 @@ import com.bmuschko.gradle.docker.DockerExtension
 import com.bmuschko.gradle.docker.DockerRegistryCredentials
 import com.bmuschko.gradle.docker.DockerRemoteApiPlugin
 import com.bmuschko.gradle.docker.tasks.RegistryCredentialsAware
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -81,6 +82,10 @@ class AwsecrPlugin implements Plugin<Project> {
      * @return map containing 'id' and 'url' keys or empty if repository URL is unknown
      */
     protected Map<String, String> extractEcrInfo(CharSequence repository) {
+        if (!repository) {
+            return [:]
+        }
+
         def m = AWS_ECR_URL.matcher(repository)
         if (!m) {
             return [:]
@@ -91,24 +96,22 @@ class AwsecrPlugin implements Plugin<Project> {
         ]
     }
 
-    protected void configureRegistryCredentials(TaskCollection<RegistryCredentialsAware> registryCredentialsAwareCollection) {
-        String repository = registryCredentialsAwareCollection.findResult { findRepository(it) }
-        if (!repository) {
-            project.logger.info('No compatible registries extracted')
+    protected void configureRegistryCredentials(Collection<RegistryCredentialsAware> registryCredentialsAwareCollection) {
+        def ecrRepositories = registryCredentialsAwareCollection.collect { extractEcrInfo(findRepository(it)) ?: null }.findAll().unique()
+
+        if (ecrRepositories.size() > 1) {
+            throw new InvalidUserDataException("Multiple AWS ECR repositories not yet supported: ${ecrRepositories*.repository}")
+        }
+        if (ecrRepositories.empty) {
+            project.logger.info('No compatible registries found')
             return
         }
 
-        def info = extractEcrInfo(repository)
-        if (!info) {
-            project.logger.info("Skipping because repository '${repository}' is not AWS ECR")
-            return
-        }
-
+        def info = ecrRepositories.first()
         String registryId = info.id
         String registryUrl = info.url
         project.logger.info("Found ECR registry account ID ${registryId} at ${registryUrl}")
         populateECRCredentials.with {
-            it.repository = repository
             it.registryId = registryId
             it.registryUrl = registryUrl
         }

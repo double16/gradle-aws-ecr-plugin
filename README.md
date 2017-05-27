@@ -51,8 +51,8 @@ You will need both the `gradle-docker-plugin` and `gradle-aws-ecr-plugin`.
 
 ```groovy
 plugins {
-  id "com.bmuschko.docker-remote-api" version "3.0.6"
-  id "com.patdouble.awsecr" version "0.3.2"
+  id "com.bmuschko.docker-remote-api" version "3.0.7"
+  id "com.patdouble.awsecr" version "0.3.3"
 }
 ```
 
@@ -90,6 +90,9 @@ $ ./gradlew -p acceptance-test test
 
 Change Log
 ----------
+
+## 0.3.3
+- Fix issue with mixing ECR repository and non-ECR repositories in the same build. [Issue #8](https://bitbucket.org/double16/gradle-aws-ecr-plugin/issues/8/errors-executing-populateecrcredentials)
 
 ## 0.3.2
 - Fix CircleCI 2.0 for building tags

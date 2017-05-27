@@ -3,6 +3,7 @@ package com.patdouble.gradle.awsecr
 import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
 import com.bmuschko.gradle.docker.tasks.image.DockerPullImage
 import com.bmuschko.gradle.docker.tasks.image.DockerPushImage
+import org.gradle.api.InvalidUserDataException
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
 
@@ -56,6 +57,96 @@ class AwsecrPluginSpec extends Specification {
         plugin.findRepository(task) == fakeImage
     }
 
+    def "configureRegistryCredentials() for no tasks"() {
+        given:
+        def project = ProjectBuilder.builder().build()
+        def plugin = new AwsecrPlugin()
+        plugin.apply(project)
+        expect:
+        plugin.configureRegistryCredentials([])
+        plugin.populateECRCredentials.registryId == null
+        plugin.populateECRCredentials.registryUrl == null
+    }
+
+    def "configureRegistryCredentials() for single task with no AWS ECR"() {
+        given:
+        def project = ProjectBuilder.builder().build()
+        def plugin = new AwsecrPlugin()
+        plugin.apply(project)
+        def task1 = project.tasks.create('push', DockerPushImage) {
+            imageName = 'myimage'
+        }
+        expect:
+        plugin.configureRegistryCredentials([task1])
+        plugin.populateECRCredentials.registryId == null
+        plugin.populateECRCredentials.registryUrl == null
+    }
+
+    def "configureRegistryCredentials() for single task with AWS ECR"() {
+        given:
+        def project = ProjectBuilder.builder().build()
+        def plugin = new AwsecrPlugin()
+        plugin.apply(project)
+        def task1 = project.tasks.create('push', DockerPushImage) {
+            imageName = FAKE_REPO+'/myimage'
+        }
+        expect:
+        plugin.configureRegistryCredentials([task1])
+        plugin.populateECRCredentials.registryId == '123456789'
+        plugin.populateECRCredentials.registryUrl == FAKE_REPO
+    }
+
+    def "configureRegistryCredentials() for multiples tasks with same AWS ECR"() {
+        given:
+        def project = ProjectBuilder.builder().build()
+        def plugin = new AwsecrPlugin()
+        plugin.apply(project)
+        def task1 = project.tasks.create('push', DockerPushImage) {
+            imageName = FAKE_REPO+'/myimage'
+        }
+        def task2 = project.tasks.create('build', DockerBuildImage) {
+            tag = FAKE_REPO+'/myimage'
+        }
+        expect:
+        plugin.configureRegistryCredentials([task1,task2])
+        plugin.populateECRCredentials.registryId == '123456789'
+        plugin.populateECRCredentials.registryUrl == FAKE_REPO
+    }
+
+    def "configureRegistryCredentials() for multiples tasks with different AWS ECR"() {
+        given:
+        def project = ProjectBuilder.builder().build()
+        def plugin = new AwsecrPlugin()
+        plugin.apply(project)
+        def task1 = project.tasks.create('push', DockerPushImage) {
+            imageName = FAKE_REPO+'/myimage'
+        }
+        def task2 = project.tasks.create('build', DockerBuildImage) {
+            tag = 'https://987654321.dkr.ecr.us-east-1.amazonaws.com/myimage'
+        }
+        when:
+        plugin.configureRegistryCredentials([task1,task2])
+        then:
+        thrown(InvalidUserDataException)
+    }
+
+    def "configureRegistryCredentials() for multiples tasks some with AWS ECR"() {
+        given:
+        def project = ProjectBuilder.builder().build()
+        def plugin = new AwsecrPlugin()
+        plugin.apply(project)
+        def task1 = project.tasks.create('push', DockerPushImage) {
+            imageName = FAKE_REPO+'/myimage'
+        }
+        def task2 = project.tasks.create('build', DockerBuildImage) {
+            tag = 'myimage'
+        }
+        expect:
+        plugin.configureRegistryCredentials([task1,task2])
+        plugin.populateECRCredentials.registryId == '123456789'
+        plugin.populateECRCredentials.registryUrl == FAKE_REPO
+    }
+
     def "extractEcrInfo"() {
         given:
         def plugin = new AwsecrPlugin()
@@ -71,7 +162,7 @@ class AwsecrPluginSpec extends Specification {
     def "registry aware tasks depend on populateECRCredentials "() {
         given:
         def project = ProjectBuilder.builder().build()
-        def newTasks
+        def newTasks = []
         project.with {
             apply plugin: 'com.patdouble.awsecr'
             newTasks = [

@@ -35,9 +35,6 @@ class PopulateECRCredentials extends AbstractReactiveStreamsTask implements Regi
     DockerRegistryCredentials registryCredentials
 
     @Input
-    String repository
-
-    @Input
     String registryId
 
     @Input
