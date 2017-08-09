@@ -1,9 +1,9 @@
-image: gradle:3.5-jdk8
+image: openjdk:8u141-jdk
 
 pipelines:
   default:
     - step:
         script:
-          - gradle dependencies
-          - gradle check install --scan
-          - gradle -p acceptance-test test --scan
+          - ./gradlew dependencies
+          - ./gradlew check cobertura install --scan
+          - ./gradlew -p acceptance-test test --scan

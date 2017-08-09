@@ -8,41 +8,38 @@ jobs:
       #- ORG_GRADLE_PROJECT_GRADLE_PUBLISH_KEY=
       #- ORG_GRADLE_PROJECT_GRADLE_PUBLISH_SECRET=
     docker:
-      - image: gradle:3.5-jdk8
+      - image: openjdk:8u141-jdk
     steps:
       - checkout
       - restore_cache:
           key: gradle-aws-ecr-plugin-{{ .Branch }}-{{ checksum "build.gradle" }}
-      - run:
-          name: Install Dependencies
-          command: gradle primeCache
-      - save_cache:
-          key: gradle-aws-ecr-plugin-{{ .Branch }}-{{ checksum "build.gradle" }}
-          paths:
-            - "~/.gradle"
 
       - run:
           name: Run Checks
-          command: gradle check install --scan
+          command: ./gradlew check cobertura install --scan
       - store_test_results:
           path: ./build/test-results
+      - store_artifacts:
+          path: ./build/reports/cobertura
+          destination: coverage
 
       - run:
           name: Acceptance Tests
-          command: gradle -p acceptance-test test --scan
+          command: ./gradlew -p acceptance-test test --scan
       #- store_test_results:
       #    path: ./acceptance-test/build/test-results
-
-      - store_artifacts:
-          path: ./build/reports/coverage
-          destination: coverage
 
       - deploy:
           name: Deploy to Gradle Plugins
           command: |
             if [[ "${CIRCLE_TAG}" =~ ^[0-9][0-9.]*$ ]]; then
-              gradle publishPlugins
+              ./gradlew publishPlugins
             fi
+
+      - save_cache:
+          key: gradle-aws-ecr-plugin-{{ .Branch }}-{{ checksum "build.gradle" }}
+          paths:
+            - "~/.gradle"
 
 # https://discuss.circleci.com/t/git-tag-deploys-in-2-0/9493/6
 deployment:
