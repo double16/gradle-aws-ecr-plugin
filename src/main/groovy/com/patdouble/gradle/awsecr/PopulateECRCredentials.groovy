@@ -93,9 +93,8 @@ class PopulateECRCredentials extends AbstractReactiveStreamsTask implements Regi
         AmazonECRClientBuilder ecrClientBuilder = AmazonECRClientBuilder.standard().withRegion(region)
 
         if (awsAccessKeyId && awsSecretAccessKey) {
-            ecrClientBuilder.setCredentials(
-                new AWSStaticCredentialsProvider(
-                    new BasicAWSCredentials(awsAccessKeyId, awsSecretAccessKey)))
+            ecrClientBuilder.credentials = new AWSStaticCredentialsProvider(
+                    new BasicAWSCredentials(awsAccessKeyId, awsSecretAccessKey))
         }
 
         GetAuthorizationTokenResult tokens = ecrClientBuilder.build()
