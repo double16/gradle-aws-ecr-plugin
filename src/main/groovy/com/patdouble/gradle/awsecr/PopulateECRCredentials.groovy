@@ -51,6 +51,10 @@ class PopulateECRCredentials extends AbstractReactiveStreamsTask implements Regi
     Logger logger
     String credFileDirectory
 
+    PopulateECRCredentials() {
+        onlyIf { registryId && registryUrl?.contains('.ecr.') }
+    }
+
     /**
      * Get the cached credentials, if any.
      * @param credFile the file holding the credentials

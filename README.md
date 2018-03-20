@@ -51,8 +51,8 @@ You will need both the `gradle-docker-plugin` and `gradle-aws-ecr-plugin`.
 
 ```groovy
 plugins {
-  id "com.bmuschko.docker-remote-api" version "3.0.7"
-  id "com.patdouble.awsecr" version "0.3.3"
+  id "com.bmuschko.docker-remote-api" version "3.2.5"
+  id "com.patdouble.awsecr" version "0.4.0"
 }
 ```
 
@@ -68,6 +68,24 @@ docker {
 
 All Docker tasks such as `DockerPullImage`, `DockerPushImage`, etc. that are configured with the ECR registry URL will get a temporary ECR token. No further configuration is necessary. It is possible to set the registry URL for individual tasks. For those tasks with a registry that is not ECR, the username and password will not be set with an ECR token.
 
+```groovy
+task buildImage(type: DockerBuildImage) {
+    dependsOn createDockerfile
+    inputDir = createDockerfile.destFile.parentFile
+    tag = '123456789012.dkr.ecr.us-east-1.amazonaws.com/myimage:latest'
+}
+```
+
+```groovy
+docker {
+    javaApplication {
+        baseImage = 'openjdk:openjdk-7-jre'
+        ports = [9090, 5701]
+        tag = '123456789012.dkr.ecr.us-east-1.amazonaws.com/jettyapp:1.115'
+    }
+}
+```
+
 Contributions
 -------------
 
@@ -80,7 +98,7 @@ $ ./gradlew check
 ```
 
 - Test results in `build/reports/tests/test/index.html`
-- Test Coverage in `build/reports/coverage/index.html`
+- Test Coverage in `build/reports/clover/index.html`
 - CodeNarc results in `build/reports/codenarc/main.html`
 
 Acceptance test to ensure the plugin will be applied:
@@ -90,6 +108,9 @@ $ ./gradlew -p acceptance-test test
 
 Change Log
 ----------
+
+## 0.4.0 UNRELEASED
+- Disable `PopulateECRCredentials` task if no ECR registry is found so the build can continue.
 
 ## 0.3.3
 - Fix issue with mixing ECR repository and non-ECR repositories in the same build. [Issue #8](https://bitbucket.org/double16/gradle-aws-ecr-plugin/issues/8/errors-executing-populateecrcredentials)

@@ -33,7 +33,13 @@ class PopulateECRCredentialsSpec extends Specification {
         task.registryUrl = AwsecrPluginSpec.FAKE_REPO
         task.registryId = '123456789'
     }
-    
+
+    void "task should be enabled"() {
+        expect:
+        task.enabled
+        task.getOnlyIf().isSatisfiedBy(task)
+    }
+
     void "should save credentials"() {
         given:
         def creds = new CachedCredentials(username: 'user1', password: 'pw', expiresAt: 1234L)
@@ -146,4 +152,3 @@ class PopulateECRCredentialsSpec extends Specification {
         task.registryCredentials.password == 'pw'
     }
 }
-
