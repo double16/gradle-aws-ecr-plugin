@@ -13,6 +13,8 @@ jobs:
       - checkout
       - restore_cache:
           key: gradle-aws-ecr-plugin-{{ .Branch }}-{{ checksum "build.gradle" }}
+          key: gradle-aws-ecr-plugin-{{ .Branch }}
+          key: gradle-aws-ecr-plugin-
 
       - run:
           name: Run Checks
