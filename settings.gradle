@@ -1,8 +1,1 @@
-pluginManagement {
-    repositories {
-        maven { url 'http://192.168.1.254:9081/content/groups/public/' }
-        gradlePluginPortal()
-    }
-}
-
 rootProject.name = 'gradle-aws-ecr-plugin'
