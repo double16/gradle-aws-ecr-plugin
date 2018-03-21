@@ -109,8 +109,9 @@ $ ./gradlew -p acceptance-test test
 Change Log
 ----------
 
-## 0.4.0 UNRELEASED
+## 0.4.0
 - Disable `PopulateECRCredentials` task if no ECR registry is found so the build can continue.
+- Consider value of `AWS_PROFILE` environment variable when caching credentials. [Issue #9](https://bitbucket.org/double16/gradle-aws-ecr-plugin/issues/9/docker-daemon-seems-to-interfere-with)
 
 ## 0.3.3
 - Fix issue with mixing ECR repository and non-ECR repositories in the same build. [Issue #8](https://bitbucket.org/double16/gradle-aws-ecr-plugin/issues/8/errors-executing-populateecrcredentials)

@@ -24,6 +24,7 @@ class PopulateECRCredentials extends AbstractReactiveStreamsTask implements Regi
     protected static final String CACHE_USERNAME = 'username'
     protected static final String CACHE_PASSWORD = 'password'
     protected static final String CACHE_EXPIRESAT = 'expiresAt'
+    protected static final String COLON_SEPARATOR = ':'
 
     @Canonical
     static class CachedCredentials {
@@ -109,7 +110,7 @@ class PopulateECRCredentials extends AbstractReactiveStreamsTask implements Regi
         }
 
         String[] ecrCreds = new String(tokens.authorizationData.first().authorizationToken.decodeBase64(),
-            'US-ASCII').split(':')
+            'US-ASCII').split(COLON_SEPARATOR)
 
         new CachedCredentials(
             username: ecrCreds[0],
@@ -118,8 +119,15 @@ class PopulateECRCredentials extends AbstractReactiveStreamsTask implements Regi
         )
     }
 
+    /**
+     * Get the active AWS profile.
+     */
+    protected String getProfile() {
+        System.getenv('AWS_PROFILE') ?: 'default'
+    }
+
     protected File getCredentialFile() {
-        new File("${credFileDirectory}/ecr-${md5(registryId)}.properties")
+        new File("${credFileDirectory}/ecr-${md5(registryId + COLON_SEPARATOR + profile)}.properties")
     }
 
     @SuppressWarnings('DuplicateStringLiteral')
