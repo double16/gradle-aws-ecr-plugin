@@ -5,5 +5,5 @@ pipelines:
     - step:
         script:
           - ./gradlew dependencies
-          - ./gradlew check cobertura install --scan
+          - ./gradlew check cloverGenerateReport install --scan
           - ./gradlew -p acceptance-test test --scan
