@@ -12,9 +12,10 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: gradle-aws-ecr-plugin-{{ .Branch }}-{{ checksum "build.gradle" }}
-          key: gradle-aws-ecr-plugin-{{ .Branch }}
-          key: gradle-aws-ecr-plugin-
+          keys:
+            - gradle-aws-ecr-plugin-{{ .Branch }}-{{ checksum "build.gradle" }}
+            - gradle-aws-ecr-plugin-{{ .Branch }}
+            - gradle-aws-ecr-plugin-
 
       - run:
           name: Run Checks

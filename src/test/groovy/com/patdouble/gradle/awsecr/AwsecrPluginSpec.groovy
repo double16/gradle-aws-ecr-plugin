@@ -39,7 +39,7 @@ class AwsecrPluginSpec extends Specification {
         def project = ProjectBuilder.builder().build()
         def plugin = new AwsecrPlugin()
         def task = project.tasks.create('build', DockerBuildImage) {
-            tag = fakeTag
+            tags.add(fakeTag)
         }
         expect:
         plugin.findRepository(task) == fakeTag
@@ -105,7 +105,7 @@ class AwsecrPluginSpec extends Specification {
             imageName = FAKE_REPO+'/myimage'
         }
         def task2 = project.tasks.create('build', DockerBuildImage) {
-            tag = FAKE_REPO+'/myimage'
+            tags.add(FAKE_REPO+'/myimage')
         }
         expect:
         plugin.configureRegistryCredentials([task1,task2])
@@ -122,7 +122,7 @@ class AwsecrPluginSpec extends Specification {
             imageName = FAKE_REPO+'/myimage'
         }
         def task2 = project.tasks.create('build', DockerBuildImage) {
-            tag = 'https://987654321.dkr.ecr.us-east-1.amazonaws.com/myimage'
+            tags.add('https://987654321.dkr.ecr.us-east-1.amazonaws.com/myimage')
         }
         when:
         plugin.configureRegistryCredentials([task1,task2])
@@ -139,7 +139,7 @@ class AwsecrPluginSpec extends Specification {
             imageName = FAKE_REPO+'/myimage'
         }
         def task2 = project.tasks.create('build', DockerBuildImage) {
-            tag = 'myimage'
+            tags.add('myimage')
         }
         expect:
         plugin.configureRegistryCredentials([task1,task2])
@@ -170,7 +170,7 @@ class AwsecrPluginSpec extends Specification {
                         repository = FAKE_REPO
                     },
                     tasks.create('build', DockerBuildImage) {
-                        tag = FAKE_REPO+'/myimage:latest'
+                        tags.add(FAKE_REPO+'/myimage:latest')
                     },
                     tasks.create('push', DockerPushImage) {
                         imageName = FAKE_REPO+'/myimage'

@@ -60,7 +60,7 @@ class CredentialsFileSpec extends Specification {
         def amazonECRClient = GroovySpy(AmazonECRClient, global: true)
 
         when:
-        task.runReactiveStream()
+        task.populateCredentials()
 
         then:
         1 * amazonECRClient.getAuthorizationToken(_) >> { GetAuthorizationTokenRequest request ->
@@ -74,8 +74,8 @@ class CredentialsFileSpec extends Specification {
         }
 
         and:
-        task.registryCredentials.username == username
-        task.registryCredentials.password == password
+        task.registryCredentials.username.get() == username
+        task.registryCredentials.password.get() == password
 
         where:
         profile    | username              | password

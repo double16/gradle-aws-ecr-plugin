@@ -51,8 +51,8 @@ You will need both the `gradle-docker-plugin` and `gradle-aws-ecr-plugin`.
 
 ```groovy
 plugins {
-  id "com.bmuschko.docker-remote-api" version "3.2.5"
-  id "com.patdouble.awsecr" version "0.4.0"
+  id "com.bmuschko.docker-remote-api" version "4.4.0"
+  id "com.patdouble.awsecr" version "0.5.0"
 }
 ```
 
@@ -72,7 +72,7 @@ All Docker tasks such as `DockerPullImage`, `DockerPushImage`, etc. that are con
 task buildImage(type: DockerBuildImage) {
     dependsOn createDockerfile
     inputDir = createDockerfile.destFile.parentFile
-    tag = '123456789012.dkr.ecr.us-east-1.amazonaws.com/myimage:latest'
+    tags.add('123456789012.dkr.ecr.us-east-1.amazonaws.com/myimage:latest')
 }
 ```
 
@@ -81,7 +81,7 @@ docker {
     javaApplication {
         baseImage = 'openjdk:openjdk-7-jre'
         ports = [9090, 5701]
-        tag = '123456789012.dkr.ecr.us-east-1.amazonaws.com/jettyapp:1.115'
+        tags = '123456789012.dkr.ecr.us-east-1.amazonaws.com/jettyapp:1.115'
     }
 }
 ```
@@ -108,6 +108,10 @@ $ ./gradlew -p acceptance-test test
 
 Change Log
 ----------
+
+## 0.5.0
+- Build with Gradle 5.1.1
+- Requires Gradle plugin `com.bmuschko.docker-remote-api` >= 4.0
 
 ## 0.4.0
 - Disable `PopulateECRCredentials` task if no ECR registry is found so the build can continue.

@@ -100,12 +100,12 @@ class PopulateECRCredentialsSpec extends Specification {
         given:
         def tokens = new GetAuthorizationTokenResult().withAuthorizationData(new AuthorizationData(authorizationToken: 'user1:pw'.bytes.encodeBase64().toString(), expiresAt: new Date() + 7))
         when:
-        task.runReactiveStream()
+        task.populateCredentials()
         then:
         1 * amazonECRClient.getAuthorizationToken(new GetAuthorizationTokenRequest().withRegistryIds('123456789')) >> tokens
         and:
-        task.registryCredentials.username == 'user1'
-        task.registryCredentials.password == 'pw'
+        task.registryCredentials.username.get() == 'user1'
+        task.registryCredentials.password.get() == 'pw'
     }
 
     void "should request credentials with AWS keys"() {
@@ -117,12 +117,12 @@ class PopulateECRCredentialsSpec extends Specification {
         request.setRequestCredentialsProvider(new AWSStaticCredentialsProvider(
                 new BasicAWSCredentials('aws_access_key', 'aws_secret_key')))
         when:
-        task.runReactiveStream()
+        task.populateCredentials()
         then:
         1 * amazonECRClient.getAuthorizationToken(request) >> tokens
         and:
-        task.registryCredentials.username == 'user1'
-        task.registryCredentials.password == 'pw'
+        task.registryCredentials.username.get() == 'user1'
+        task.registryCredentials.password.get() == 'pw'
     }
 
     void "should configure cached credentials"() {
@@ -130,12 +130,12 @@ class PopulateECRCredentialsSpec extends Specification {
         def creds = new CachedCredentials(username: 'cacheduser', password: 'cachedpw', expiresAt: (new Date()+7).time)
         task.setCachedCredentials(task.getCredentialFile(), creds)
         when:
-        task.runReactiveStream()
+        task.populateCredentials()
         then:
         0 * amazonECRClient.getAuthorizationToken(_)
         and:
-        task.registryCredentials.username == 'cacheduser'
-        task.registryCredentials.password == 'cachedpw'
+        task.registryCredentials.username.get() == 'cacheduser'
+        task.registryCredentials.password.get() == 'cachedpw'
     }
 
     void "should configure refreshed credentials"() {
@@ -144,11 +144,11 @@ class PopulateECRCredentialsSpec extends Specification {
         def creds = new CachedCredentials(username: 'cacheduser', password: 'cachedpw', expiresAt: (new Date()-7).time)
         task.setCachedCredentials(task.getCredentialFile(), creds)
         when:
-        task.runReactiveStream()
+        task.populateCredentials()
         then:
         1 * amazonECRClient.getAuthorizationToken(new GetAuthorizationTokenRequest().withRegistryIds('123456789')) >> tokens
         and:
-        task.registryCredentials.username == 'user1'
-        task.registryCredentials.password == 'pw'
+        task.registryCredentials.username.get() == 'user1'
+        task.registryCredentials.password.get() == 'pw'
     }
 }

@@ -4,12 +4,14 @@ import com.bmuschko.gradle.docker.DockerExtension
 import com.bmuschko.gradle.docker.DockerRegistryCredentials
 import com.bmuschko.gradle.docker.DockerRemoteApiPlugin
 import com.bmuschko.gradle.docker.tasks.RegistryCredentialsAware
+import groovy.util.logging.Slf4j
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.tasks.TaskCollection
 
+import java.util.regex.Matcher
 import java.util.regex.Pattern
 
 /**
@@ -17,6 +19,7 @@ import java.util.regex.Pattern
  * request a fresh token based on AWS credentials rather than ECR credentials.
  */
 @SuppressWarnings(['ConsecutiveStringConcatenation', 'SpaceAroundMapEntryColon', 'NoDef', 'LineLength'])
+@Slf4j
 class AwsecrPlugin implements Plugin<Project> {
     public static final String POPULATE_ECR_CREDENTIALS_NAME = 'populateECRCredentials'
 
@@ -24,7 +27,7 @@ class AwsecrPlugin implements Plugin<Project> {
 
     private static final String REGISTRY_PROPERTY_REPO = 'repository'
     private static final String REGISTRY_PROPERTY_IMAGENAME = 'imageName'
-    private static final String REGISTRY_PROPERTY_TAG = 'tag'
+    private static final String REGISTRY_PROPERTY_TAG = 'tags'
 
     private static final String AWS_ACCESS_KEY_PROPERTY = 'awsAccessKeyId'
     private static final String AWS_ACCESS_SECRET_PROPERTY = 'awsSecretAccessKey'
@@ -32,6 +35,7 @@ class AwsecrPlugin implements Plugin<Project> {
     Project project
     PopulateECRCredentials populateECRCredentials
 
+    @SuppressWarnings('CouldBeElvis')
     @Override
     void apply(Project project) {
         assert project
@@ -41,12 +45,13 @@ class AwsecrPlugin implements Plugin<Project> {
         populateECRCredentials = createPopulateECRCredentialsTask()
         //Make sure there is an object to share references
         project.extensions.getByType(DockerExtension).with {
-            registryCredentials = registryCredentials ?: new DockerRegistryCredentials()
+            if (!registryCredentials) {
+                registryCredentials = new DockerRegistryCredentials(project)
+            }
+            populateECRCredentials.registryCredentials = registryCredentials
         }
 
         project.afterEvaluate {
-            populateECRCredentials.registryCredentials = project.extensions.getByType(DockerExtension).registryCredentials
-
             TaskCollection<RegistryCredentialsAware> regTasks = project.tasks.withType(RegistryCredentialsAware).matching { !(it in PopulateECRCredentials) }
             configureRegistryCredentials(regTasks)
             regTasks*.dependsOn populateECRCredentials
@@ -60,20 +65,19 @@ class AwsecrPlugin implements Plugin<Project> {
             awsAccessKeyId = project.hasProperty(AWS_ACCESS_KEY_PROPERTY) ? project[AWS_ACCESS_KEY_PROPERTY] : null
             awsSecretAccessKey = project.hasProperty(AWS_ACCESS_SECRET_PROPERTY) ? project[AWS_ACCESS_SECRET_PROPERTY] : null
 
-            logger = project.logger
             credFileDirectory = project.rootProject.file('.gradle')
         }
     }
 
     protected String findRepository(RegistryCredentialsAware registryCredentialsAware) {
         if (registryCredentialsAware.hasProperty(REGISTRY_PROPERTY_REPO)) {
-            return registryCredentialsAware[REGISTRY_PROPERTY_REPO] as String
+            return registryCredentialsAware[REGISTRY_PROPERTY_REPO].get() as String
         } else if (registryCredentialsAware.hasProperty(REGISTRY_PROPERTY_IMAGENAME)) {
-            return registryCredentialsAware[REGISTRY_PROPERTY_IMAGENAME] as String
+            return registryCredentialsAware[REGISTRY_PROPERTY_IMAGENAME].get() as String
         } else if (registryCredentialsAware.hasProperty(REGISTRY_PROPERTY_TAG)) {
-            return registryCredentialsAware[REGISTRY_PROPERTY_TAG] as String
+            return registryCredentialsAware[REGISTRY_PROPERTY_TAG].get().first() as String
         }
-        project.logger.info("Skipping docker credentials for ${registryCredentialsAware} because we do not know how to find a repository for this type (${registryCredentialsAware.class}")
+        log.info("Skipping docker credentials for ${registryCredentialsAware} because we do not know how to find a repository for this type (${registryCredentialsAware.class}")
         null
     }
 
@@ -86,7 +90,7 @@ class AwsecrPlugin implements Plugin<Project> {
             return [:]
         }
 
-        def m = AWS_ECR_URL.matcher(repository)
+        Matcher m = AWS_ECR_URL.matcher(repository)
         if (!m) {
             return [:]
         }
@@ -97,20 +101,20 @@ class AwsecrPlugin implements Plugin<Project> {
     }
 
     protected void configureRegistryCredentials(Collection<RegistryCredentialsAware> registryCredentialsAwareCollection) {
-        def ecrRepositories = registryCredentialsAwareCollection.collect { extractEcrInfo(findRepository(it)) ?: null }.findAll().unique()
+        List<Map<String, String>> ecrRepositories = registryCredentialsAwareCollection.collect { extractEcrInfo(findRepository(it)) ?: null }.findAll().unique()
 
         if (ecrRepositories.size() > 1) {
             throw new InvalidUserDataException("Multiple AWS ECR repositories not yet supported: ${ecrRepositories*.repository}")
         }
         if (ecrRepositories.empty) {
-            project.logger.info('No compatible registries found')
+            log.info('No compatible registries found')
             return
         }
 
-        def info = ecrRepositories.first()
+        Map<String, String> info = ecrRepositories.first()
         String registryId = info.id
         String registryUrl = info.url
-        project.logger.info("Found ECR registry account ID ${registryId} at ${registryUrl}")
+        log.info("Found ECR registry account ID ${registryId} at ${registryUrl}")
         populateECRCredentials.with {
             it.registryId = registryId
             it.registryUrl = registryUrl
