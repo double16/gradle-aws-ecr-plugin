@@ -73,6 +73,7 @@ sonarqube {
         property 'sonar.host.url', System.getenv('SONARQUBE_URL') ?: 'https://sonarcloud.io'
         property 'sonar.organization', System.getenv('SONARQUBE_ORG')
         property 'sonar.login', System.getenv('SONARQUBE_LOGIN')
+        property 'sonar.clover.reportPath', "${cloverGenerateReport.reportsDir.absolutePath}/clover/clover.xml"
     }
 }
 tasks.sonarqube.dependsOn check, cloverGenerateReport
