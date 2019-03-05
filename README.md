@@ -1,4 +1,4 @@
-Gradle AWS Elastic Container Registry Plugin Template [![CircleCI](https://circleci.com/bb/double16/gradle-aws-ecr-plugin.svg?style=svg&circle-token=6f261793ab1ee2dd674adb04bb334336eb65f54b)](https://circleci.com/bb/double16/gradle-aws-ecr-plugin)
+Gradle AWS Elastic Container Registry Plugin [![CircleCI](https://circleci.com/bb/double16/gradle-aws-ecr-plugin.svg?style=svg&circle-token=6f261793ab1ee2dd674adb04bb334336eb65f54b)](https://circleci.com/bb/double16/gradle-aws-ecr-plugin)
 =====================================================
 
 Integrates Docker functions with AWS ECR (Elastic Container Registry) using `gradle-docker-plugin`.
@@ -16,8 +16,8 @@ Getting Started
 
 The plugin will detect the AWS ECR url in docker tasks. Only one AWS account is supported at this time. The AWS credentials can be supplied in the following ways based on the AWS SDK:
 
-* Environment Variables - AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY (RECOMMENDED since they are recognized by all the AWS SDKs and CLI except for .NET), or AWS_ACCESS_KEY and AWS_SECRET_KEY (only recognized by Java SDK)
-* Java System Properties - aws.accessKeyId and aws.secretKey
+* Environment Variables - AWS_PROFILE, AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY (RECOMMENDED since they are recognized by all the AWS SDKs and CLI except for .NET), or AWS_ACCESS_KEY and AWS_SECRET_KEY (only recognized by Java SDK)
+* Java System Properties - AWS_PROFILE, aws.accessKeyId and aws.secretKey
 * Credential profiles file at the default location (~/.aws/credentials) shared by all AWS SDKs and the AWS CLI
 * Credentials delivered through the Amazon EC2 container service if AWS_CONTAINER_CREDENTIALS_RELATIVE_URI" environment variable is set and security manager has permission to access the variable, Instance profile credentials delivered through the Amazon EC2 metadata service
 
@@ -52,7 +52,7 @@ You will need both the `gradle-docker-plugin` and `gradle-aws-ecr-plugin`.
 ```groovy
 plugins {
   id "com.bmuschko.docker-remote-api" version "4.4.0"
-  id "com.patdouble.awsecr" version "0.5.0"
+  id "com.patdouble.awsecr" version "0.5.1"
 }
 ```
 
@@ -79,7 +79,7 @@ task buildImage(type: DockerBuildImage) {
 ```groovy
 docker {
     javaApplication {
-        baseImage = 'openjdk:openjdk-7-jre'
+        baseImage = 'openjdk:8u181-jdk'
         ports = [9090, 5701]
         tags = '123456789012.dkr.ecr.us-east-1.amazonaws.com/jettyapp:1.115'
     }
@@ -108,6 +108,9 @@ $ ./gradlew -p acceptance-test test
 
 Change Log
 ----------
+
+## 0.5.1
+- Consider value of `AWS_PROFILE` system property if environment variable isn't set. Thanks Mason!
 
 ## 0.5.0
 - Build with Gradle 5.1.1
