@@ -141,7 +141,7 @@ class PopulateECRCredentials extends DefaultTask implements RegistryCredentialsA
      * Get the active AWS profile.
      */
     protected String getProfile() {
-        System.getenv('AWS_PROFILE') ?: 'default'
+        System.getenv('AWS_PROFILE') ?: System.getProperty('AWS_PROFILE') ?: 'default'
     }
 
     protected File getCredentialFile() {
