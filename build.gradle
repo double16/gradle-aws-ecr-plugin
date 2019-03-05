@@ -14,7 +14,7 @@ apply plugin: 'idea'
 
 description = 'Gradle plugin to integrate with AWS ECR'
 group = 'com.patdouble'
-version = 'SNAPSHOT'
+version = 'MSNAPSHOT'
 
 buildScan {
     termsOfServiceUrl = 'https://gradle.com/terms-of-service'
