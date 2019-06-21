@@ -17,7 +17,7 @@ Getting Started
 The plugin will detect the AWS ECR url in docker tasks. Only one AWS account is supported at this time. The AWS credentials can be supplied in the following ways based on the AWS SDK:
 
 * Environment Variables - AWS_PROFILE, AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY (RECOMMENDED since they are recognized by all the AWS SDKs and CLI except for .NET), or AWS_ACCESS_KEY and AWS_SECRET_KEY (only recognized by Java SDK)
-* Java System Properties - AWS_PROFILE, aws.accessKeyId and aws.secretKey
+* Java System Properties - aws.profile, aws.accessKeyId and aws.secretKey
 * Credential profiles file at the default location (~/.aws/credentials) shared by all AWS SDKs and the AWS CLI
 * Credentials delivered through the Amazon EC2 container service if AWS_CONTAINER_CREDENTIALS_RELATIVE_URI" environment variable is set and security manager has permission to access the variable, Instance profile credentials delivered through the Amazon EC2 metadata service
 
@@ -108,6 +108,9 @@ $ ./gradlew -p acceptance-test test
 
 Change Log
 ----------
+
+## 0.5.2
+- switch AWS_PROFILE property to the proper "aws.profile" property already considered by aws provider chain. Bad Mason!
 
 ## 0.5.1
 - Consider value of `AWS_PROFILE` system property if environment variable isn't set. Thanks Mason!

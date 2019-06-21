@@ -28,6 +28,7 @@ class PopulateECRCredentials extends DefaultTask implements RegistryCredentialsA
     protected static final String CACHE_EXPIRESAT = 'expiresAt'
     protected static final String COLON_SEPARATOR = ':'
     protected static final String PROFILE_KEY = 'AWS_PROFILE'
+    protected static final String PROFILE_PROPERTY_KEY = 'aws.profile'
 
     @Canonical
     static class CachedCredentials {
@@ -142,7 +143,7 @@ class PopulateECRCredentials extends DefaultTask implements RegistryCredentialsA
      * Get the active AWS profile.
      */
     protected String getProfile() {
-        System.getenv(PROFILE_KEY) ?: System.getProperty(PROFILE_KEY) ?: 'default'
+        System.getenv(PROFILE_KEY) ?: System.getProperty(PROFILE_PROPERTY_KEY) ?: 'default'
     }
 
     protected File getCredentialFile() {
