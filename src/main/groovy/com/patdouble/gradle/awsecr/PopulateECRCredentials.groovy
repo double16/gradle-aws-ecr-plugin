@@ -22,7 +22,9 @@ import java.security.MessageDigest
  * and cached.
  */
 @Slf4j
+@SuppressWarnings('CompileStatic')
 class PopulateECRCredentials extends DefaultTask implements RegistryCredentialsAware {
+
     protected static final String CACHE_USERNAME = 'username'
     protected static final String CACHE_PASSWORD = 'password'
     protected static final String CACHE_EXPIRESAT = 'expiresAt'
@@ -32,8 +34,10 @@ class PopulateECRCredentials extends DefaultTask implements RegistryCredentialsA
 
     @Canonical
     static class CachedCredentials {
+
         String username, password
         Long expiresAt
+
     }
 
     @Input
@@ -81,6 +85,7 @@ class PopulateECRCredentials extends DefaultTask implements RegistryCredentialsA
      * @param credFile the file holding the credentials
      * @return CachedCredentials if valid, null otherwise.
      */
+    @SuppressWarnings('UnnecessaryGetter')
     protected CachedCredentials getCachedCredentials(File credFile) {
         if (credFile.canRead() && credFile.isFile()) {
             Properties props = new Properties()
@@ -156,4 +161,5 @@ class PopulateECRCredentials extends DefaultTask implements RegistryCredentialsA
         digest.update(s.bytes)
         new BigInteger(1, digest.digest()).toString(16).padLeft(32, '0')
     }
+
 }

@@ -20,7 +20,9 @@ import java.util.regex.Pattern
  */
 @SuppressWarnings(['ConsecutiveStringConcatenation', 'SpaceAroundMapEntryColon', 'NoDef', 'LineLength'])
 @Slf4j
+@SuppressWarnings('CompileStatic')
 class AwsecrPlugin implements Plugin<Project> {
+
     public static final String POPULATE_ECR_CREDENTIALS_NAME = 'populateECRCredentials'
 
     private static final Pattern AWS_ECR_URL = ~/(?:https:\/\/)?([0-9A-Za-z]+)\.dkr\.ecr\.[a-zA-Z0-9-]+\.amazonaws\.com/
@@ -120,4 +122,5 @@ class AwsecrPlugin implements Plugin<Project> {
             it.registryUrl = registryUrl
         }
     }
+
 }
