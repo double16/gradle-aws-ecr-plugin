@@ -20,7 +20,9 @@ import java.util.regex.Pattern
  */
 @SuppressWarnings(['ConsecutiveStringConcatenation', 'SpaceAroundMapEntryColon', 'NoDef', 'LineLength'])
 @Slf4j
+@SuppressWarnings('CompileStatic')
 class AwsecrPlugin implements Plugin<Project> {
+
     public static final String POPULATE_ECR_CREDENTIALS_NAME = 'populateECRCredentials'
 
     private static final Pattern AWS_ECR_URL = ~/(?:https:\/\/)?([0-9A-Za-z]+)\.dkr\.ecr\.[a-zA-Z0-9-]+\.amazonaws\.com/
@@ -28,6 +30,9 @@ class AwsecrPlugin implements Plugin<Project> {
     private static final String REGISTRY_PROPERTY_REPO = 'repository'
     private static final String REGISTRY_PROPERTY_IMAGENAME = 'imageName'
     private static final String REGISTRY_PROPERTY_TAG = 'tags'
+    // properties renamed in version 6.0 of the gradle-docker-plugin:
+    private static final String REGISTRY_PROPERTY_IMAGE = 'image'
+    private static final String REGISTRY_PROPERTY_IMAGES = 'images'
 
     private static final String AWS_ACCESS_KEY_PROPERTY = 'awsAccessKeyId'
     private static final String AWS_ACCESS_SECRET_PROPERTY = 'awsSecretAccessKey'
@@ -76,6 +81,10 @@ class AwsecrPlugin implements Plugin<Project> {
             return registryCredentialsAware[REGISTRY_PROPERTY_IMAGENAME].get() as String
         } else if (registryCredentialsAware.hasProperty(REGISTRY_PROPERTY_TAG)) {
             return registryCredentialsAware[REGISTRY_PROPERTY_TAG].get().first() as String
+        } else if (registryCredentialsAware.hasProperty(REGISTRY_PROPERTY_IMAGE)) {
+            return registryCredentialsAware[REGISTRY_PROPERTY_IMAGE].get() as String
+        } else if (registryCredentialsAware.hasProperty(REGISTRY_PROPERTY_IMAGES)) {
+            return registryCredentialsAware[REGISTRY_PROPERTY_IMAGES].get().first() as String
         }
         log.info("Skipping docker credentials for ${registryCredentialsAware} because we do not know how to find a repository for this type (${registryCredentialsAware.class}")
         null
@@ -120,4 +129,5 @@ class AwsecrPlugin implements Plugin<Project> {
             it.registryUrl = registryUrl
         }
     }
+
 }

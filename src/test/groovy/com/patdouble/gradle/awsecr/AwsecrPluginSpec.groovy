@@ -27,7 +27,7 @@ class AwsecrPluginSpec extends Specification {
         def project = ProjectBuilder.builder().build()
         def plugin = new AwsecrPlugin()
         def task = project.tasks.create('pull', DockerPullImage) {
-            repository = FAKE_REPO
+            image = FAKE_REPO
         }
         expect:
         plugin.findRepository(task) == FAKE_REPO
@@ -35,14 +35,14 @@ class AwsecrPluginSpec extends Specification {
 
     def "findRepository() for DockerBuildImage"() {
         given:
-        def fakeTag = FAKE_REPO+'/myimage:latest'
+        def fakeImage = FAKE_REPO+'/myimage:latest'
         def project = ProjectBuilder.builder().build()
         def plugin = new AwsecrPlugin()
         def task = project.tasks.create('build', DockerBuildImage) {
-            tags.add(fakeTag)
+            images.add(fakeImage)
         }
         expect:
-        plugin.findRepository(task) == fakeTag
+        plugin.findRepository(task) == fakeImage
     }
 
     def "findRepository() for DockerPushImage"() {
@@ -51,7 +51,7 @@ class AwsecrPluginSpec extends Specification {
         def project = ProjectBuilder.builder().build()
         def plugin = new AwsecrPlugin()
         def task = project.tasks.create('push', DockerPushImage) {
-            imageName = fakeImage
+            images.add(fakeImage)
         }
         expect:
         plugin.findRepository(task) == fakeImage
@@ -74,7 +74,7 @@ class AwsecrPluginSpec extends Specification {
         def plugin = new AwsecrPlugin()
         plugin.apply(project)
         def task1 = project.tasks.create('push', DockerPushImage) {
-            imageName = 'myimage'
+            images.add('myimage')
         }
         expect:
         plugin.configureRegistryCredentials([task1])
@@ -88,7 +88,7 @@ class AwsecrPluginSpec extends Specification {
         def plugin = new AwsecrPlugin()
         plugin.apply(project)
         def task1 = project.tasks.create('push', DockerPushImage) {
-            imageName = FAKE_REPO+'/myimage'
+            images.add(FAKE_REPO+'/myimage')
         }
         expect:
         plugin.configureRegistryCredentials([task1])
@@ -102,10 +102,10 @@ class AwsecrPluginSpec extends Specification {
         def plugin = new AwsecrPlugin()
         plugin.apply(project)
         def task1 = project.tasks.create('push', DockerPushImage) {
-            imageName = FAKE_REPO+'/myimage'
+            images.add(FAKE_REPO+'/myimage')
         }
         def task2 = project.tasks.create('build', DockerBuildImage) {
-            tags.add(FAKE_REPO+'/myimage')
+            images.add(FAKE_REPO+'/myimage')
         }
         expect:
         plugin.configureRegistryCredentials([task1,task2])
@@ -119,10 +119,10 @@ class AwsecrPluginSpec extends Specification {
         def plugin = new AwsecrPlugin()
         plugin.apply(project)
         def task1 = project.tasks.create('push', DockerPushImage) {
-            imageName = FAKE_REPO+'/myimage'
+            images.add(FAKE_REPO+'/myimage')
         }
         def task2 = project.tasks.create('build', DockerBuildImage) {
-            tags.add('https://987654321.dkr.ecr.us-east-1.amazonaws.com/myimage')
+            images.add('https://987654321.dkr.ecr.us-east-1.amazonaws.com/myimage')
         }
         when:
         plugin.configureRegistryCredentials([task1,task2])
@@ -136,10 +136,10 @@ class AwsecrPluginSpec extends Specification {
         def plugin = new AwsecrPlugin()
         plugin.apply(project)
         def task1 = project.tasks.create('push', DockerPushImage) {
-            imageName = FAKE_REPO+'/myimage'
+            images.add(FAKE_REPO+'/myimage')
         }
         def task2 = project.tasks.create('build', DockerBuildImage) {
-            tags.add('myimage')
+            images.add('myimage')
         }
         expect:
         plugin.configureRegistryCredentials([task1,task2])
@@ -167,13 +167,13 @@ class AwsecrPluginSpec extends Specification {
             apply plugin: 'com.patdouble.awsecr'
             newTasks = [
                     tasks.create('pull', DockerPullImage) {
-                        repository = FAKE_REPO
+                        image = FAKE_REPO
                     },
                     tasks.create('build', DockerBuildImage) {
-                        tags.add(FAKE_REPO+'/myimage:latest')
+                        images.add(FAKE_REPO+'/myimage:latest')
                     },
                     tasks.create('push', DockerPushImage) {
-                        imageName = FAKE_REPO+'/myimage'
+                        images.add(FAKE_REPO+'/myimage')
                     }
             ]
         }

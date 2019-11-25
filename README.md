@@ -51,7 +51,7 @@ You will need both the `gradle-docker-plugin` and `gradle-aws-ecr-plugin`.
 
 ```groovy
 plugins {
-  id "com.bmuschko.docker-remote-api" version "4.4.0"
+  id "com.bmuschko.docker-remote-api" version "5.4.0"
   id "com.patdouble.awsecr" version "0.5.1"
 }
 ```
@@ -90,7 +90,7 @@ Contributions
 -------------
 
 This is open source software licensed under the Apache License Version 2.0.
-Any issues or pull requests are welcome.
+Issues and pull requests are welcome.
 
 Build and run unit tests:
 ```shell

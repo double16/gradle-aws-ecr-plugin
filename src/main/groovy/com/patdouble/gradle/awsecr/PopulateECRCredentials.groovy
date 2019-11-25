@@ -9,6 +9,7 @@ import com.bmuschko.gradle.docker.DockerRegistryCredentials
 import com.bmuschko.gradle.docker.tasks.RegistryCredentialsAware
 import groovy.transform.Canonical
 import groovy.util.logging.Slf4j
+import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.tasks.Input
@@ -22,7 +23,9 @@ import java.security.MessageDigest
  * and cached.
  */
 @Slf4j
+@SuppressWarnings('CompileStatic')
 class PopulateECRCredentials extends DefaultTask implements RegistryCredentialsAware {
+
     protected static final String CACHE_USERNAME = 'username'
     protected static final String CACHE_PASSWORD = 'password'
     protected static final String CACHE_EXPIRESAT = 'expiresAt'
@@ -32,12 +35,14 @@ class PopulateECRCredentials extends DefaultTask implements RegistryCredentialsA
 
     @Canonical
     static class CachedCredentials {
+
         String username, password
         Long expiresAt
+
     }
 
     @Input
-    DockerRegistryCredentials registryCredentials
+    DockerRegistryCredentials registryCredentials = new DockerRegistryCredentials(project.objects)
 
     @Input
     String registryId
@@ -77,10 +82,20 @@ class PopulateECRCredentials extends DefaultTask implements RegistryCredentialsA
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    @SuppressWarnings('ConfusingMethodName')
+    void registryCredentials(Action<? super DockerRegistryCredentials> action) {
+        action.execute(registryCredentials)
+    }
+
+    /**
      * Get the cached credentials, if any.
      * @param credFile the file holding the credentials
      * @return CachedCredentials if valid, null otherwise.
      */
+    @SuppressWarnings('UnnecessaryGetter')
     protected CachedCredentials getCachedCredentials(File credFile) {
         if (credFile.canRead() && credFile.isFile()) {
             Properties props = new Properties()
@@ -156,4 +171,5 @@ class PopulateECRCredentials extends DefaultTask implements RegistryCredentialsA
         digest.update(s.bytes)
         new BigInteger(1, digest.digest()).toString(16).padLeft(32, '0')
     }
+
 }
