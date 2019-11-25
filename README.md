@@ -109,6 +109,9 @@ $ ./gradlew -p acceptance-test test
 Change Log
 ----------
 
+## 0.6.0
+- Compatibility with Gradle 6 and gradle-docker-plugin 6.0.0. Thanks Joris Kuipers! [Issue #19](https://bitbucket.org/double16/gradle-aws-ecr-plugin/issues/19/compatibility-with-gradle-docker-plugin)
+
 ## 0.5.2
 - switch AWS_PROFILE property to the proper "aws.profile" property already considered by aws provider chain. Bad Mason!
 
