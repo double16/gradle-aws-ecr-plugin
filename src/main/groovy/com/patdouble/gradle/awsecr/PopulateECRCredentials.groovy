@@ -75,9 +75,9 @@ class PopulateECRCredentials extends DefaultTask implements RegistryCredentialsA
         }
 
         registryCredentials.with {
-            url = registryUrl
-            username = creds.username
-            password = creds.password
+            url.set(registryUrl)
+            username.set(creds.username)
+            password.set(creds.password)
         }
     }
 
