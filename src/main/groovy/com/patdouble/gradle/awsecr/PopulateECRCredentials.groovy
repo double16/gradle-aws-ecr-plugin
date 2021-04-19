@@ -13,6 +13,7 @@ import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
 
@@ -58,6 +59,7 @@ class PopulateECRCredentials extends DefaultTask implements RegistryCredentialsA
     @Optional
     String awsSecretAccessKey
 
+    @Internal
     String credFileDirectory
 
     PopulateECRCredentials() {
@@ -157,10 +159,12 @@ class PopulateECRCredentials extends DefaultTask implements RegistryCredentialsA
     /**
      * Get the active AWS profile.
      */
+    @Internal
     protected String getProfile() {
         System.getenv(PROFILE_KEY) ?: System.getProperty(PROFILE_PROPERTY_KEY) ?: 'default'
     }
 
+    @Internal
     protected File getCredentialFile() {
         new File("${credFileDirectory}/ecr-${md5(registryId + COLON_SEPARATOR + profile)}.properties")
     }
