@@ -102,7 +102,7 @@ class PopulateECRCredentialsSpec extends Specification {
         when:
         task.populateCredentials()
         then:
-        1 * amazonECRClient.getAuthorizationToken(new GetAuthorizationTokenRequest().withRegistryIds('123456789')) >> tokens
+        1 * amazonECRClient.getAuthorizationToken(new GetAuthorizationTokenRequest()) >> tokens
         and:
         task.registryCredentials.username.get() == 'user1'
         task.registryCredentials.password.get() == 'pw'
@@ -111,7 +111,7 @@ class PopulateECRCredentialsSpec extends Specification {
     void "should request credentials with AWS keys"() {
         given:
         def tokens = new GetAuthorizationTokenResult().withAuthorizationData(new AuthorizationData(authorizationToken: 'user1:pw'.bytes.encodeBase64().toString(), expiresAt: new Date() + 7))
-        def request = new GetAuthorizationTokenRequest().withRegistryIds('123456789')
+        def request = new GetAuthorizationTokenRequest()
         task.awsAccessKeyId = 'aws_access_key'
         task.awsSecretAccessKey = 'aws_secret_key'
         request.setRequestCredentialsProvider(new AWSStaticCredentialsProvider(
@@ -146,7 +146,7 @@ class PopulateECRCredentialsSpec extends Specification {
         when:
         task.populateCredentials()
         then:
-        1 * amazonECRClient.getAuthorizationToken(new GetAuthorizationTokenRequest().withRegistryIds('123456789')) >> tokens
+        1 * amazonECRClient.getAuthorizationToken(new GetAuthorizationTokenRequest()) >> tokens
         and:
         task.registryCredentials.username.get() == 'user1'
         task.registryCredentials.password.get() == 'pw'
