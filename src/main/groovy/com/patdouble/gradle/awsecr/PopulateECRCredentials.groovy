@@ -140,7 +140,7 @@ class PopulateECRCredentials extends DefaultTask implements RegistryCredentialsA
         }
 
         GetAuthorizationTokenResult tokens = ecrClientBuilder.build()
-                .getAuthorizationToken(new GetAuthorizationTokenRequest().withRegistryIds(registryId))
+                .getAuthorizationToken(new GetAuthorizationTokenRequest())
 
         if (!tokens.authorizationData) {
             throw new GradleException("Could not get ECR token: ${tokens.sdkHttpMetadata.httpStatusCode}")
