@@ -3,10 +3,9 @@ plugins {
     id 'maven-publish'
     id 'com.gradle.plugin-publish' version '0.11.0'
     id 'nebula.lint' version '16.6.0'
-    id 'com.github.ben-manes.versions' version '0.28.0'
-    id 'ru.vyarus.quality' version '4.1.0'
-    id 'com.bmuschko.clover' version '2.2.5'
-    id 'org.sonarqube' version '2.8'
+    id 'com.github.ben-manes.versions' version '0.39.0'
+    id 'ru.vyarus.quality' version '4.7.0'
+    id 'com.bmuschko.clover' version '3.0.2'
 }
 
 apply plugin: 'idea'
@@ -51,7 +50,7 @@ repositories {
 dependencies {
     implementation gradleApi()
     implementation localGroovy()
-    implementation 'com.bmuschko:gradle-docker-plugin:6.4.0'
+    implementation 'com.bmuschko:gradle-docker-plugin:6.7.0'
     implementation 'com.amazonaws:aws-java-sdk-ecr:1.12.116'
     testImplementation('org.spockframework:spock-core:1.1-groovy-2.4') {
         exclude module: 'groovy-all'
@@ -71,15 +70,13 @@ clover {
     }
 }
 
-sonarqube {
-    properties {
-        property 'sonar.host.url', System.getenv('SONARQUBE_URL') ?: 'https://sonarcloud.io'
-        property 'sonar.organization', System.getenv('SONARQUBE_ORG')
-        property 'sonar.login', System.getenv('SONARQUBE_LOGIN')
-        property 'sonar.clover.reportPath', "${cloverGenerateReport.reportsDir.absolutePath}/clover/clover.xml"
+afterEvaluate {
+    codenarc {
+        maxPriority1Violations = 0
+        maxPriority2Violations = 5
+        maxPriority3Violations = 50
     }
 }
-tasks.sonarqube.dependsOn check, cloverGenerateReport
 
 publishing {
     publications {

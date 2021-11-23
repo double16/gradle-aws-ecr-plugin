@@ -52,7 +52,7 @@ You will need both the `gradle-docker-plugin` and `gradle-aws-ecr-plugin`.
 ```groovy
 plugins {
   id "com.bmuschko.docker-remote-api" version "5.4.0"
-  id "com.patdouble.awsecr" version "0.6.2"
+  id "com.patdouble.awsecr" version "0.7.0"
 }
 ```
 
@@ -108,6 +108,9 @@ $ ./gradlew -p acceptance-test test
 
 Change Log
 ----------
+
+## 0.7.0
+- AWS SDK 1.12, Thanks Mike Anderson!
 
 ## 0.6.2
 - Fix for Gradle 7.0. Thanks Pavel Grigorenko!
