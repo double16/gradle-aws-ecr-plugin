@@ -52,7 +52,7 @@ dependencies {
     implementation gradleApi()
     implementation localGroovy()
     implementation 'com.bmuschko:gradle-docker-plugin:6.4.0'
-    implementation 'com.amazonaws:aws-java-sdk-ecr:1.11.759'
+    implementation 'com.amazonaws:aws-java-sdk-ecr:1.12.116'
     testImplementation('org.spockframework:spock-core:1.1-groovy-2.4') {
         exclude module: 'groovy-all'
     }
